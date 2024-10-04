@@ -34,7 +34,7 @@ class ScriptArguments:
     lora_dropout: Optional[float] = 0.1
     lora_r: Optional[int] = 32
     max_seq_length: Optional[int] = 512
-    model_name: Optional[str] = "meta-llama/Meta-Llama-3.1-8B-Instruct" # OR "mistralai/Mistral-7B-Instruct-v0.3" OR "tiiuae/falcon-7b-instruct"
+    model_name: Optional[str] = "meta-llama/Meta-Llama-3.1-8B-Instruct" # "meta-llama/Meta-Llama-3.1-8B-Instruct" # OR "mistralai/Mistral-7B-Instruct-v0.3" OR "tiiuae/falcon-7b-instruct"
     use_4bit: Optional[bool] = True
     use_nested_quant: Optional[bool] = False
     bnb_4bit_compute_dtype: Optional[str] = "bfloat16"
@@ -52,11 +52,13 @@ class ScriptArguments:
     save_steps: int = 50
     logging_steps: int = 50
     merge_and_push: Optional[bool] = True # just saves the model's final checkpoint
-    # output_dir: str = "./results_packing" # Mistral (Both Llama training and Qwen training final checkpoints are found here
+    # output_dir: str = "./results_packing" # Mistral 
     # outpur_dir: str = "./falcon_results_packing"
     # output_dir: str = "./falcon_qwen_results_packing"
+    # output_dir: str = "./falcon_gpt_results_packing"
     # output_dir: str = "./llama_results_packing"
-    output_dir: str = "./llama_qwen_results_packing"
+    # output_dir: str = "./llama_qwen_results_packing"
+    output_dir: str = "./llama_gpt_results_packing"
 
 parser = HfArgumentParser(ScriptArguments)
 script_args = parser.parse_args_into_dataclasses()[0]
@@ -65,17 +67,21 @@ script_args = parser.parse_args_into_dataclasses()[0]
 
 def gen_batches_train(val_ratio: float = 0.1):
     # file_path = 'data/data_after_t_prompt_0.6sim.csv'
-    file_path = 'data/from_Qwen2_final.csv'
+    # file_path = 'data/from_Qwen2_final.csv'
+    file_path = 'data/from_GPT_train_final.csv'
 
     # training_data = pd.read_csv(file_path, nrows=7392)
-    training_data = pd.read_csv(file_path, nrows=7718)
+    # training_data = pd.read_csv(file_path, nrows=7718)
+    training_data = pd.read_csv(file_path) # GPT
 
     instruction = 'Translate the following sentence into a form suitable for a child: '
 
     # prompts = ['<s>[INST] ' + instruction + ad.strip("'\"") + ' [/INST] ' + sim.strip("'\"") + ' </s>' for ad, sim in zip(training_data['adult_definition'], training_data['simplified'])]
     # prompts = [instruction + ad.strip("'\"") + sim.strip("'\"") for ad, sim in zip(training_data['adult_definition'], training_data['simplified'])] # Llama
     # prompts = ['<s>[INST] ' + instruction + ad.strip("'\"") + ' [/INST] ' + sim.strip("'\"") + ' </s>' for ad, sim in zip(training_data['adult_definition'], training_data['from_Qwen2'])]
-    prompts = [instruction + ad.strip("'\"") + sim.strip("'\"") for ad, sim in zip(training_data['adult_definition'], training_data['from_Qwen2'])] # Llama
+    # prompts = [instruction + ad.strip("'\"") + sim.strip("'\"") for ad, sim in zip(training_data['adult_definition'], training_data['from_Qwen2'])] # Llama
+    # prompts = ['<s>[INST] ' + instruction + ad.strip("'\"") + ' [/INST] ' + sim.strip("'\"") + ' </s>' for ad, sim in zip(training_data['adult_definition'], training_data['from_GPT'])]
+    prompts = [instruction + ad.strip("'\"") + sim.strip("'\"") for ad, sim in zip(training_data['adult_definition'], training_data['from_GPT'])] # Llama
 
     total_samples = len(prompts)
     train_limit = int(total_samples * (1 - val_ratio))
@@ -89,17 +95,21 @@ def gen_batches_train(val_ratio: float = 0.1):
 
 def gen_batches_val(val_ratio: float = 0.1):
     # file_path = 'data/data_after_t_prompt_0.6sim.csv'
-    file_path = 'data/from_Qwen2_final.csv'
+    # file_path = 'data/from_Qwen2_final.csv'
+    file_path = 'data/from_GPT_train_final.csv'
 
     # training_data = pd.read_csv(file_path, nrows=7392)
-    training_data = pd.read_csv(file_path, nrows=7718)
+    # training_data = pd.read_csv(file_path, nrows=7718)
+    training_data = pd.read_csv(file_path) # GPT
 
     instruction = 'Translate the following sentence into a form suitable for a child: '
 
     # prompts = ['<s>[INST] ' + instruction + ad.strip("'\"") + ' [/INST] ' + sim.strip("'\"") + ' </s>' for ad, sim in zip(training_data['adult_definition'], training_data['simplified'])]
     # prompts = [instruction + ad.strip("'\"") + sim.strip("'\"") for ad, sim in zip(training_data['adult_definition'], training_data['simplified'])] # Llama
     # prompts = ['<s>[INST] ' + instruction + ad.strip("'\"") + ' [/INST] ' + sim.strip("'\"") + ' </s>' for ad, sim in zip(training_data['adult_definition'], training_data['from_Qwen2'])]
-    prompts = [instruction + ad.strip("'\"") + sim.strip("'\"") for ad, sim in zip(training_data['adult_definition'], training_data['from_Qwen2'])] # Llama
+    # prompts = [instruction + ad.strip("'\"") + sim.strip("'\"") for ad, sim in zip(training_data['adult_definition'], training_data['from_Qwen2'])] # Llama
+    # prompts = ['<s>[INST] ' + instruction + ad.strip("'\"") + ' [/INST] ' + sim.strip("'\"") + ' </s>' for ad, sim in zip(training_data['adult_definition'], training_data['from_GPT'])]
+    prompts = [instruction + ad.strip("'\"") + sim.strip("'\"") for ad, sim in zip(training_data['adult_definition'], training_data['from_GPT'])] # Llama
 
     total_samples = len(prompts)
     train_limit = int(total_samples * (1 - val_ratio))
@@ -150,7 +160,7 @@ def create_and_prepare_model(args):
     peft_config = LoraConfig(
         lora_alpha=script_args.lora_alpha,
         lora_dropout=script_args.lora_dropout,
-        # target_modules=["query_key_value"], # Use instead for Llama
+        # target_modules=["query_key_value"], # Use instead for Falcon
         r=script_args.lora_r,
         bias="none",
         task_type="CAUSAL_LM",

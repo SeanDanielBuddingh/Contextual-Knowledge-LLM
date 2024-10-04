@@ -1,8 +1,10 @@
 results_packing/
 wandb/
 output/
+falcon_gpt_results_packing/
 falcon_qwen_results_packing/
 falcon_results_packing/
+llama_gpt_results_packing/
 llama_qwen_results_packing/
 llama_results_packing/
 checkpoints.tar.gz
